@@ -25,7 +25,7 @@ process MULTIQC {
         export TMPDIR=${workDir}
 
         # Run MultiQC
-        multiqc ${multiqc_args} --filename multiqc_report.html -o .
+        multiqc ${multiqc_args} --filename multiqc_report.html .
         """
 }
 
