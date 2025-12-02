@@ -2,28 +2,30 @@
 nextflow.enable.dsl=2
 
 
-/* ========================================================================================
-    PROCESSES
-======================================================================================== */
 process MULTIQC {
 
-	label 'multiQC'
+    label 'multiQC'
 
-	container 'docker://josousa/multiqc:1.22.3'
+    container 'docker://josousa/multiqc:1.22.3'
 
-	input:
-		path(file)
-		val(outputdir)
-		val(multiqc_args)
+    input:
+        path(file)
+        val(outputdir)
+        val(multiqc_args)
 
-	output:
-		path "*html", emit: html
-		
-		publishDir "$outputdir/qc", mode: "link", overwrite: true
+    output:
+        path "*html", emit: html
+        path "multiqc_data", emit: raw   // <--- add this
+        path "multiqc.log", emit: log    // <--- optional but useful
 
-	script:
-		"""
-		export TMPDIR=${workDir}
-		multiqc ${multiqc_args} --filename multiqc_report.html .
-		"""
+    publishDir "$outputdir/qc",
+        mode: "link",
+        overwrite: true,
+        pattern: "*html|multiqc_data|multiqc.log"  // <--- publish the raw outputs
+
+    script:
+        """
+        export TMPDIR=${workDir}
+        multiqc ${multiqc_args} --filename multiqc_report.html .
+        """
 }
