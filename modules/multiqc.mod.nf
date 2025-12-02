@@ -1,11 +1,9 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-
 process MULTIQC {
 
     label 'multiQC'
-
     container 'docker://josousa/multiqc:1.22.3'
 
     input:
@@ -14,18 +12,28 @@ process MULTIQC {
         val(multiqc_args)
 
     output:
-        path "*html", emit: html
-        path "multiqc_data", emit: raw   // <--- add this
-        path "multiqc.log", emit: log    // <--- optional but useful
+        path "multiqc_report.html", emit: html
+        path "multiqc_data", emit: raw
+        path "multiqc.log", emit: log
 
     publishDir "$outputdir/qc",
-        mode: "link",
-        overwrite: true,
-        pattern: "*html|multiqc_data|multiqc.log"  // <--- publish the raw outputs
+        mode: "copy",
+        overwrite: true
 
     script:
         """
         export TMPDIR=${workDir}
+
+        # run MultiQC
         multiqc ${multiqc_args} --filename multiqc_report.html .
+
+        # force multiqc_data and log into the process directory where NF can see them
+        if [ -d multiqc_data ]; then
+            echo "multiqc_data directory found"
+        else
+            echo "ERROR: multiqc_data directory not found"
+            ls -A
+        fi
         """
 }
+
